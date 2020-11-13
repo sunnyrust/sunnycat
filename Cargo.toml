@@ -1,0 +1,17 @@
+[package]
+name = "sunnycat"
+version = "0.1.5"
+authors = ["Sunny <jinheking@gmail.com>"]
+edition = "2018"
+description="a3dd38f424c314549e1cafac1a47fe8ac024eaf0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# https://crates.io/crates/rustyline
+rustyline = "5.0.3"
+ansi_term = "0.12.1"
+clap = "2.33.0"
+libc = "0.2.65"
+encoding = "0.2.33"
+encodingbufreader = "0.1.1"

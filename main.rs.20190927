@@ -1,0 +1,78 @@
+// read_file is  读取日志
+//
+extern crate ansi_term;
+use std::io::prelude::*;
+use std::fs::File;
+use std::io::BufReader;
+use std::env;
+extern crate clap;
+use clap::{Arg, App, SubCommand};
+
+
+fn color_log(s:String,kyw:String)->(){
+    let line=s;
+   // kyw="color".to_string();
+   // use ansi_term::Colour;
+    use ansi_term::Style;
+    use ansi_term::Colour::{Blue, Cyan, Yellow,Red};
+    let  l=kyw.len();
+    let start_bytes = line.find(&kyw).unwrap()+l;
+    let  result = &line[start_bytes-l..l];
+    println!("    {}",
+            Style::new().on(Blue).fg(Red).paint(result));
+}
+
+// Returns the path to the user's template directory.
+fn read_file(filename:String,kyw:String)->std::io::Result<()>{
+    let file = File::open(filename).unwrap();
+    let fin = BufReader::new(file);
+    let mut i=1;
+     for line in fin.lines() {
+         print!("{number:>0width$}",number=i, width=6);
+         if kyw.len()==0{
+             println!(" {}",line.unwrap().to_string());
+         }else{
+             color_log(line.unwrap().to_string(),kyw.to_string());
+           // println!("🥇🥇🥇🥇🥇🥇{}",kyw);
+         }
+         
+         i=i+1;
+         if i>50{
+             break;
+         }
+     }
+    
+    Ok(())
+}
+/// 主程序
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    let filename = &args[1];
+    let mut kyw ="";
+    if args.len()>2{
+        kyw = &args[2];
+    }
+    
+    let  _f = match File::open(filename){
+        Ok(_) => {
+                let _r= read_file(filename.to_string(),kyw.to_string());
+            },
+        Err(_why) => { println!("文件({ })打开失败.",filename);},
+    };
+    let line="This is simplay in color, blue in color and green in color";
+    use ansi_term::Colour;
+    use ansi_term::Style;
+    use ansi_term::Colour::{Blue, Cyan, Yellow,Red};
+    match line.find("cor"){
+        Some(start_bytes)=>{println!("{}",start_bytes );},
+         None => {
+                println!("没有搜索到" );
+            }
+    }
+    
+    // let mut result = &line[..start_bytes];
+    // println!(" {} {}{}",
+    //         Style::new().on(Blue).fg(Red).paint(result),
+    //          Colour::Cyan.paint("blue"),
+    //          Colour::Yellow.paint("green"));
+}
