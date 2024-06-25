@@ -31,7 +31,7 @@ hello:
 
 build:
 	@echo "\e[1;33mGit Version:\e[1;35m$(GIT_VERSION)."; \
-	sed -i 's/description="888888"/description="$(GIT_VERSION)"/g' Cargo.toml
+	sed -i 's/gitversion="[^"]*"/gitversion="$(GIT_VERSION)"/g' Cargo.toml
 	cargo build $(release)
 
 install:
@@ -40,7 +40,7 @@ install:
 		cp target/$(target)/$(BUILD_NAME) /usr/local/bin/$(BUILD_NAME)-$(extension); \
 	else \
 		cp target/$(target)/$(BUILD_NAME) /usr/local/bin/$(BUILD_NAME); \
-	fi 
+	fi
 
 all: build install
 

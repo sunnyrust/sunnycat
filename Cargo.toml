@@ -3,8 +3,15 @@ name = "sunnycat"
 version = "0.2.0"
 authors = ["Sunny <jinheking@gmail.com>"]
 edition = "2021"
-description="faf5de47532c6e5a5289b9bc1987ed16f4bead24"
+gitversion="8470f844a5563d85260ef61d22b1caf75c161b79"
 build = "build.rs"
+license = "MIT OR Apache-2.0"
+description = "A tool to search log files"
+readme = "README.md"
+homepage = "https://github.com/sunnyrust/sunnycat"
+repository = "https://github.com/sunnyrust/sunnycat"
+keywords = ["cli","log"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
