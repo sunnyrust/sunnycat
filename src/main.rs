@@ -8,8 +8,8 @@ use std::io::{BufRead, BufReader};
 #[macro_use]
 extern crate clap;
 extern crate libc;
-use clap::{App, SubCommand};
-
+use clap::{App, Arg, SubCommand};
+use shadow_rs::shadow;
 #[allow(dead_code)]
 fn gen_value<T>(_: &T) {
     println!("类型： {}\n", std::any::type_name::<T>());
@@ -131,6 +131,14 @@ fn flag() -> () {
                  ./sunnycat lines -r 5,10
         ",
         )
+        .arg(
+            Arg::with_name("detail")
+                .short("d")
+                .long("detail")
+                // .multiple(false)
+                // .takes_value(false)
+                .help("Get detail program's info"),
+        )
         .args_from_usage("-k, --keyword=[KEYWORD] '搜索关键字'")
         .args_from_usage("-b, --bytekeyword=[BYTEKEYWORD] '搜索byte关键字'")
         .args_from_usage("-s,--str=[STRING]'转成中文'")
@@ -185,6 +193,14 @@ fn flag() -> () {
         use std::process;
         process::exit(0x0100);
     }
+
+    let detail = matches.is_present("detail");
+    if detail {
+        get_shadow();
+        use std::process;
+        process::exit(0x0100);
+    }
+
     //  println!("{}",bLine);
     let mut lines: String = "0,0".to_string();
     if let Some(matches) = matches.subcommand_matches("lines") {
@@ -217,32 +233,35 @@ fn flag() -> () {
     };
 }
 
-pub mod shadow {
-    include!(concat!(env!("OUT_DIR"), "/shadow.rs"));
-}
+// pub mod shadow {
+//     include!(concat!(env!("OUT_DIR"), "/shadow.rs"));
+// }
 
+pub fn get_shadow() {
+    shadow!(build);
+    print!("Name:{}\t", build::PROJECT_NAME); //shadow-rs
+    print!("Author:{}\t", build::COMMIT_AUTHOR); //
+    println!("Email:{}", build::COMMIT_EMAIL); //
+
+    print!("Git branch:{}\t", build::BRANCH); //master
+    print!("Git Version:{}\t", build::COMMIT_HASH); //
+                                                    //println!("{}", build::SHORT_COMMIT); //
+    println!("Git commit date:{}", build::COMMIT_DATE); //
+
+    print!("OS:{}\t", build::BUILD_OS); //macos-x86_64
+    print!("Rust version:{}\t", build::RUST_VERSION); //rustc 1.45.0 (5c1f21c3b 2020-07-13)
+    println!("Channel:{}", build::RUST_CHANNEL); //stable-x86_64-apple-darwin (default)
+    print!("Cargo Version:{}\t", build::CARGO_VERSION); //cargo 1.45.0 (744bd1fbb 2020-06-15)
+    println!("PKG Version:{}", build::PKG_VERSION); //0.3.13
+                                                    //    println!("{}",build::CARGO_LOCK);
+
+    print!("Build Time:{}\t", build::BUILD_TIME); //2020-08-16 14:50:25
+    println!("Build Rust Channel:{}", build::BUILD_RUST_CHANNEL); //debug
+}
 /// 主程序
 fn main() {
     unsafe {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
     }
     flag();
-    print!("Name:{}\t", shadow::PROJECT_NAME); //shadow-rs
-    print!("Author:{}\t", shadow::COMMIT_AUTHOR); //
-    println!("Email:{}", shadow::COMMIT_EMAIL); //
-
-    print!("Git branch:{}\t", shadow::BRANCH); //master
-    print!("Git Version:{}\t", shadow::COMMIT_HASH); //
-                                                     //println!("{}", shadow::SHORT_COMMIT); //
-    println!("Git commit date:{}", shadow::COMMIT_DATE); //
-
-    print!("OS:{}\t", shadow::BUILD_OS); //macos-x86_64
-    print!("Rust version:{}\t", shadow::RUST_VERSION); //rustc 1.45.0 (5c1f21c3b 2020-07-13)
-    println!("Channel:{}", shadow::RUST_CHANNEL); //stable-x86_64-apple-darwin (default)
-    print!("Cargo Version:{}\t", shadow::CARGO_VERSION); //cargo 1.45.0 (744bd1fbb 2020-06-15)
-    println!("PKG Version:{}", shadow::PKG_VERSION); //0.3.13
-                                                     //    println!("{}",shadow::CARGO_LOCK);
-
-    print!("Build Time:{}\t", shadow::BUILD_TIME); //2020-08-16 14:50:25
-    println!("Build Rust Channel:{}", shadow::BUILD_RUST_CHANNEL); //debug
 }
