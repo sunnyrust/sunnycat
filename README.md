@@ -3,7 +3,7 @@
 SunnyCat is search log file tools
 
 ## help
-
+    Sunnycat Version:0.3.0  git:A tool to search log files
     Sunny <jinheking@gmail.com>
     日志检索，增强版cat.
             例子:sunnycat --keyword example --file log.txt
@@ -11,9 +11,10 @@ SunnyCat is search log file tools
 
 
     USAGE:
-        sunnycat [OPTIONS] [SUBCOMMAND]
+        sunnycat [FLAGS] [OPTIONS] [SUBCOMMAND]
 
     FLAGS:
+        -d, --detail     Get detail program's info
         -h, --help       Prints help information
         -V, --version    Prints version information
 
