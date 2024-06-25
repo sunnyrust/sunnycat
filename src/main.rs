@@ -240,8 +240,8 @@ fn flag() -> () {
 pub fn get_shadow() {
     shadow!(build);
     print!("Name:{}\t", build::PROJECT_NAME); //shadow-rs
-    print!("Author:{}\t", build::COMMIT_AUTHOR); //
-    println!("Email:{}", build::COMMIT_EMAIL); //
+    print!("Author:Sunnyregion\t"); //
+    println!("Email:jinheking@gmail.com"); //
 
     print!("Git branch:{}\t", build::BRANCH); //master
     print!("Git Version:{}\t", build::COMMIT_HASH); //
