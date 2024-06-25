@@ -1,9 +1,10 @@
 [package]
 name = "sunnycat"
-version = "0.1.5"
+version = "0.2.0"
 authors = ["Sunny <jinheking@gmail.com>"]
-edition = "2018"
-description="a3dd38f424c314549e1cafac1a47fe8ac024eaf0"
+edition = "2021"
+description="faf5de47532c6e5a5289b9bc1987ed16f4bead24"
+build = "build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,3 +16,6 @@ clap = "2.33.0"
 libc = "0.2.65"
 encoding = "0.2.33"
 encodingbufreader = "0.1.1"
+
+[build-dependencies]
+shadow-rs = "0.3"

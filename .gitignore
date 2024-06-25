@@ -1,0 +1,4 @@
+log.txt
+log_old.txt
+/target
+**/*.rs.bk

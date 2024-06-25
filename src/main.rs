@@ -11,7 +11,7 @@ extern crate libc;
 use clap::{App, SubCommand};
 
 #[allow(dead_code)]
-fn gen_value<T>(_: &T)  {
+fn gen_value<T>(_: &T) {
     println!("类型： {}\n", std::any::type_name::<T>());
     Default::default()
 }
@@ -25,9 +25,8 @@ fn gen_value<T>(_: &T)  {
 //     }
 // }
 
-
 /// 查询的关键词高亮显示
-fn color_log(s: String, kyw: String,lineonly:bool) -> () {
+fn color_log(s: String, kyw: String, lineonly: bool) -> () {
     let line = s;
     use ansi_term::Colour::{Blue, Yellow};
     use ansi_term::Style;
@@ -38,40 +37,44 @@ fn color_log(s: String, kyw: String,lineonly:bool) -> () {
             print!("{}", &line[..start_bytes]);
             print!("{}", Style::new().on(Blue).fg(Yellow).paint(result));
             let subline = &line[start_bytes + l..];
-            color_log(subline.to_string(), kyw.to_string(),lineonly);
+            color_log(subline.to_string(), kyw.to_string(), lineonly);
         }
         None => {
-           if !lineonly{
-            println!("{}", line);
-           }else{
-               println!("");
-           }
+            if !lineonly {
+                println!("{}", line);
+            } else {
+                println!("");
+            }
         }
     }
 }
-fn read_file(filename: String, kyw: String, begin: i32, end: i32,lineonly:bool) -> std::io::Result<()> {
+fn read_file(
+    filename: String,
+    kyw: String,
+    begin: i32,
+    end: i32,
+    lineonly: bool,
+) -> std::io::Result<()> {
     //let file = File::open(filename).unwrap();
     //let f = BufReader::new(file);
 
-use encodingbufreader::{BufReaderEncoding};
-use encoding::all::{UTF_8};
-let file = File::open(filename)?;
-let mut i = 1;
-// println!("开始:{}\t;结束:{}\n",begin,end);
-for line in BufReaderEncoding::new(file, UTF_8)
-	.lines(){
-        if (begin == 0 && end == 0)||(  i >= begin && i <= end ) {
+    use encoding::all::UTF_8;
+    use encodingbufreader::BufReaderEncoding;
+    let file = File::open(filename)?;
+    let mut i = 1;
+    // println!("开始:{}\t;结束:{}\n",begin,end);
+    for line in BufReaderEncoding::new(file, UTF_8).lines() {
+        if (begin == 0 && end == 0) || (i >= begin && i <= end) {
             let s = format!("{:08}", i);
             print!("{}", Colour::Yellow.paint(s));
             if kyw.len() == 0 {
-            println!("{}",line?);
-            }else{
-                color_log(line?, kyw.to_string(),lineonly);
+                println!("{}", line?);
+            } else {
+                color_log(line?, kyw.to_string(), lineonly);
             }
-
         }
-        i=i+1;
-        if i>end && end!=0{
+        i = i + 1;
+        if i > end && end != 0 {
             break;
         }
     }
@@ -94,7 +97,7 @@ fn read_file_old(filename: String, kyw: String, begin: i32, end: i32) -> std::io
                 gen_value(&line);
                 println!(" {}", line.unwrap().to_string());
             } else {
-                color_log(line.unwrap().to_string(), kyw.to_string(),false);
+                color_log(line.unwrap().to_string(), kyw.to_string(), false);
             }
         } else {
             if i >= begin && i <= end {
@@ -103,7 +106,7 @@ fn read_file_old(filename: String, kyw: String, begin: i32, end: i32) -> std::io
                 if kyw.len() == 0 {
                     println!(" {}", line.unwrap().to_string());
                 } else {
-                    color_log(line.unwrap().to_string(), kyw.to_string(),false);
+                    color_log(line.unwrap().to_string(), kyw.to_string(), false);
                 }
             }
         }
@@ -112,10 +115,12 @@ fn read_file_old(filename: String, kyw: String, begin: i32, end: i32) -> std::io
     Ok(())
 }
 
-
 /// flag用于参数
 fn flag() -> () {
-    let s="Version:".to_owned()+&crate_version!().to_owned()+"  git:"+&crate_description!().to_owned();
+    let s = "Version:".to_owned()
+        + &crate_version!().to_owned()
+        + "  git:"
+        + &crate_description!().to_owned();
     // println!("{:?}",s);
     let matches = App::new("Sunnycat")
         .version(&*s)
@@ -134,7 +139,7 @@ fn flag() -> () {
             App::new("lineonly")
                 .about("只显示有关键字存在的行号")
                 .version(crate_version!())
-                .args_from_usage("-l, --list '只显示能够查找到关键字的行号。'" ,)
+                .args_from_usage("-l, --list '只显示能够查找到关键字的行号。'"),
         )
         .subcommand(
             SubCommand::with_name("lines")
@@ -151,32 +156,32 @@ fn flag() -> () {
     let filename = matches.value_of("file").unwrap_or("log.txt");
     let key = matches.value_of("keyword").unwrap_or("");
     let bytekey = matches.value_of("bytekeyword").unwrap_or("");
-   
-    if bytekey.len()>0{
+
+    if bytekey.len() > 0 {
         let bytes = bytekey.as_bytes();
         for i in bytes {
             print!("\\\\{:o}", i);
         }
-        println!("------{}",bytekey);
+        println!("------{}", bytekey);
         use std::process;
         process::exit(0x0100);
     }
     /*
-  \\345\\214\\227\\344\\272\\254\\357\\274\\214\\347\\256\\200\\347\\247\\260\\342\\200\\234\\344\\272\\254\\342\\200\\235\\357\\274\\214
-    */
-    let s_byte  =matches.value_of("str").unwrap_or("");
-    if s_byte.len()>0{
-        let tokens:Vec<&str>= s_byte.split("\\").collect();
-       let mut vec = Vec::new(); 
-       for value in tokens.iter(){
-           if value.len()>0{
-            //let ss=value.parse::<i32>().unwrap();
-            let ss= u8::from_str_radix(value, 8).unwrap();
-            vec.push(ss);
-           }
-       }
+    \\345\\214\\227\\344\\272\\254\\357\\274\\214\\347\\256\\200\\347\\247\\260\\342\\200\\234\\344\\272\\254\\342\\200\\235\\357\\274\\214
+      */
+    let s_byte = matches.value_of("str").unwrap_or("");
+    if s_byte.len() > 0 {
+        let tokens: Vec<&str> = s_byte.split("\\").collect();
+        let mut vec = Vec::new();
+        for value in tokens.iter() {
+            if value.len() > 0 {
+                //let ss=value.parse::<i32>().unwrap();
+                let ss = u8::from_str_radix(value, 8).unwrap();
+                vec.push(ss);
+            }
+        }
         let sparkle_heart = String::from_utf8(vec).unwrap();
-        println!("vec :{:?}",sparkle_heart);
+        println!("vec :{:?}", sparkle_heart);
         use std::process;
         process::exit(0x0100);
     }
@@ -189,14 +194,14 @@ fn flag() -> () {
             println!("Printing normally...");
         }
     }
-    let mut lineonly:bool=false;
+    let mut lineonly: bool = false;
     if let Some(matches) = matches.subcommand_matches("lineonly") {
         if matches.is_present("list") {
-            lineonly=true;
-        //     gen_value(&lineonly);
-        //    print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
-        //    use std::process;
-        //    process::exit(0x0100);
+            lineonly = true;
+            //     gen_value(&lineonly);
+            //    print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
+            //    use std::process;
+            //    process::exit(0x0100);
         }
     }
     let l: Vec<&str> = lines.split(",").collect();
@@ -204,12 +209,16 @@ fn flag() -> () {
     let end: i32 = l[1].parse().unwrap();
     let _f = match File::open(filename) {
         Ok(_) => {
-            let _r = read_file(filename.to_string(), key.to_string(), begin, end,lineonly);
+            let _r = read_file(filename.to_string(), key.to_string(), begin, end, lineonly);
         }
         Err(_why) => {
             println!("文件({ })打开失败.", filename);
         }
     };
+}
+
+pub mod shadow {
+    include!(concat!(env!("OUT_DIR"), "/shadow.rs"));
 }
 
 /// 主程序
@@ -218,4 +227,22 @@ fn main() {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
     }
     flag();
+    print!("Name:{}\t", shadow::PROJECT_NAME); //shadow-rs
+    print!("Author:{}\t", shadow::COMMIT_AUTHOR); //
+    println!("Email:{}", shadow::COMMIT_EMAIL); //
+
+    print!("Git branch:{}\t", shadow::BRANCH); //master
+    print!("Git Version:{}\t", shadow::COMMIT_HASH); //
+                                                     //println!("{}", shadow::SHORT_COMMIT); //
+    println!("Git commit date:{}", shadow::COMMIT_DATE); //
+
+    print!("OS:{}\t", shadow::BUILD_OS); //macos-x86_64
+    print!("Rust version:{}\t", shadow::RUST_VERSION); //rustc 1.45.0 (5c1f21c3b 2020-07-13)
+    println!("Channel:{}", shadow::RUST_CHANNEL); //stable-x86_64-apple-darwin (default)
+    print!("Cargo Version:{}\t", shadow::CARGO_VERSION); //cargo 1.45.0 (744bd1fbb 2020-06-15)
+    println!("PKG Version:{}", shadow::PKG_VERSION); //0.3.13
+                                                     //    println!("{}",shadow::CARGO_LOCK);
+
+    print!("Build Time:{}\t", shadow::BUILD_TIME); //2020-08-16 14:50:25
+    println!("Build Rust Channel:{}", shadow::BUILD_RUST_CHANNEL); //debug
 }
