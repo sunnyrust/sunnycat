@@ -26,7 +26,7 @@ fn gen_value<T>(_: &T) {
 // }
 
 /// 查询的关键词高亮显示
-fn color_log(s: String, kyw: String, lineonly: bool) -> () {
+fn color_log(s: String, kyw: String) -> () {
     let line = s;
     use ansi_term::Colour::{Blue, Yellow};
     use ansi_term::Style;
@@ -37,14 +37,11 @@ fn color_log(s: String, kyw: String, lineonly: bool) -> () {
             print!("{}", &line[..start_bytes]);
             print!("{}", Style::new().on(Blue).fg(Yellow).paint(result));
             let subline = &line[start_bytes + l..];
-            color_log(subline.to_string(), kyw.to_string(), lineonly);
+            println!("{subline}")
+            // color_log(subline.to_string(), kyw.to_string(), lineonly);
         }
         None => {
-            if !lineonly {
-                println!("{}", line);
-            } else {
-                println!("");
-            }
+            println!("");
         }
     }
 }
@@ -65,13 +62,32 @@ fn read_file(
     // println!("开始:{}\t;结束:{}\n",begin,end);
     for line in BufReaderEncoding::new(file, UTF_8).lines() {
         if (begin == 0 && end == 0) || (i >= begin && i <= end) {
-            let s = format!("{:08}", i);
-            print!("{}", Colour::Yellow.paint(s));
-            if kyw.len() == 0 {
-                println!("{}", line?);
-            } else {
-                color_log(line?, kyw.to_string(), lineonly);
+            if lineonly{
+                let str_line=line.unwrap();
+                match str_line.find(&kyw) {
+                    Some(_) => {
+                        let s = format!("{:08}", i);
+                        print!("{}  ", Colour::Yellow.paint(s));
+                        if kyw.len() == 0 {
+                            println!("{}", str_line);
+                        } else {
+                            color_log(str_line, kyw.to_string());
+                        }
+                    }
+                    None => {
+                        println!("");
+                    }
+                }
+            }else{
+                let s = format!("{:08}", i);
+                print!("{}  ", Colour::Yellow.paint(s));
+                if kyw.len() == 0 {
+                    println!("{}", line?);
+                } else {
+                    color_log(line?, kyw.to_string());
+                }
             }
+            
         }
         i = i + 1;
         if i > end && end != 0 {
@@ -92,21 +108,21 @@ fn read_file_old(filename: String, kyw: String, begin: i32, end: i32) -> std::io
     for line in fin.lines() {
         if begin == 0 && end == 0 {
             let s = format!("{:07}", i);
-            print!("{}", Colour::Yellow.paint(s));
+            print!("{}  \t", Colour::Yellow.paint(s));
             if kyw.len() == 0 {
                 gen_value(&line);
                 println!(" {}", line.unwrap().to_string());
             } else {
-                color_log(line.unwrap().to_string(), kyw.to_string(), false);
+                color_log(line.unwrap().to_string(), kyw.to_string());
             }
         } else {
             if i >= begin && i <= end {
                 let s = format!("{:07}", i);
-                print!("{}", Colour::Yellow.paint(s));
+                print!("{}  \t", Colour::Yellow.paint(s));
                 if kyw.len() == 0 {
                     println!(" {}", line.unwrap().to_string());
                 } else {
-                    color_log(line.unwrap().to_string(), kyw.to_string(), false);
+                    color_log(line.unwrap().to_string(), kyw.to_string());
                 }
             }
         }
@@ -139,16 +155,24 @@ fn flag() -> () {
                 // .takes_value(false)
                 .help("Get detail program's info"),
         )
+        .arg(
+            Arg::with_name("lineonly")
+                .short("l")
+                .long("lineonly")
+                // .multiple(false)
+                // .takes_value(false)
+                .help("只显示有关键字存在的行号"),
+        )
         .args_from_usage("-k, --keyword=[KEYWORD] '搜索关键字'")
         .args_from_usage("-b, --bytekeyword=[BYTEKEYWORD] '搜索byte关键字'")
         .args_from_usage("-s,--str=[STRING]'转成中文'")
         .args_from_usage("-f ,--file=[FILE] 'Sets the input file to use'")
-        .subcommand(
-            App::new("lineonly")
-                .about("只显示有关键字存在的行号")
-                .version(crate_version!())
-                .args_from_usage("-l, --list '只显示能够查找到关键字的行号。'"),
-        )
+        // .subcommand(
+        //     App::new("lineonly")
+        //         .about("只显示有关键字存在的行号")
+        //         .version(crate_version!())
+        //         .args_from_usage("-l, --list '只显示能够查找到关键字的行号。'"),
+        // )
         .subcommand(
             SubCommand::with_name("lines")
                 .about("选择哪些行显示")
@@ -210,16 +234,18 @@ fn flag() -> () {
             println!("Printing normally...");
         }
     }
-    let mut lineonly: bool = false;
-    if let Some(matches) = matches.subcommand_matches("lineonly") {
-        if matches.is_present("list") {
-            lineonly = true;
-            //     gen_value(&lineonly);
-            //    print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
-            //    use std::process;
-            //    process::exit(0x0100);
-        }
-    }
+    let lineonly = matches.is_present("lineonly");
+    
+    // let mut lineonly: bool = false;
+    // if let Some(matches) = matches.subcommand_matches("lineonly") {
+    //     if matches.is_present("list") {
+    //         lineonly = true;
+    //         //     gen_value(&lineonly);
+    //         //    print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
+    //         //    use std::process;
+    //         //    process::exit(0x0100);
+    //     }
+    // }
     let l: Vec<&str> = lines.split(",").collect();
     let begin: i32 = l[0].parse().unwrap();
     let end: i32 = l[1].parse().unwrap();

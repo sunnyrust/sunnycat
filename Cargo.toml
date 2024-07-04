@@ -1,6 +1,6 @@
 [package]
 name = "sunnycat"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Sunny <jinheking@gmail.com>"]
 edition = "2021"
 gitversion = "51a2db2715ea844d3b4765aaef9343bd2cd4b824"
