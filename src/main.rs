@@ -25,6 +25,31 @@ fn gen_value<T>(_: &T) {
 //     }
 // }
 
+
+fn find_and_print(s: &str,key:&str) {
+    use crossterm::style::Stylize;
+    // let mut found = false;
+    let mut current_index = 0;
+
+    while let Some(next_index) = s[current_index..].find(&key) {
+        let before = &s[current_index..current_index + next_index];
+        let target = &s[current_index + next_index..current_index + next_index + key.len()];
+
+        print!("{}", before);
+        print!("{}", target.yellow().on_blue());
+
+        current_index += next_index + key.len();
+        // found = true;
+    }
+
+    // if!found {
+    //     println!("未找到'白色'");
+    // }
+
+    if current_index < s.len() {
+        println!("{}", &s[current_index..]);
+    }
+}
 /// 查询的关键词高亮显示
 fn color_log(s: String, kyw: String) -> () {
     let line = s;
@@ -71,7 +96,8 @@ fn read_file(
                         if kyw.len() == 0 {
                             println!("{}", str_line);
                         } else {
-                            color_log(str_line, kyw.to_string());
+                            // color_log(str_line, kyw.to_string());
+                            find_and_print(&str_line, &kyw);
                         }
                     }
                     None => {
@@ -84,7 +110,8 @@ fn read_file(
                 if kyw.len() == 0 {
                     println!("{}", line?);
                 } else {
-                    color_log(line?, kyw.to_string());
+                    // color_log(line?, kyw.to_string());
+                    find_and_print(&line.unwrap(), &kyw);
                 }
             }
             
