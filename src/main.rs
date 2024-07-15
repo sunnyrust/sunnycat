@@ -25,10 +25,9 @@ fn gen_value<T>(_: &T) {
 //     }
 // }
 
-
+/// 查询的关键词高亮显示
 fn find_and_print(s: &str,key:&str) {
     use crossterm::style::Stylize;
-    // let mut found = false;
     let mut current_index = 0;
 
     while let Some(next_index) = s[current_index..].find(&key) {
@@ -39,17 +38,15 @@ fn find_and_print(s: &str,key:&str) {
         print!("{}", target.yellow().on_blue());
 
         current_index += next_index + key.len();
-        // found = true;
     }
 
-    // if!found {
-    //     println!("未找到'白色'");
-    // }
 
     if current_index < s.len() {
         println!("{}", &s[current_index..]);
     }
 }
+
+#[allow(dead_code)]
 /// 查询的关键词高亮显示
 fn color_log(s: String, kyw: String) -> () {
     let line = s;
