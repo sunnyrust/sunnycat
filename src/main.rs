@@ -2,9 +2,10 @@
 extern crate ansi_term;
 use ansi_term::Colour;
 use std::fs::File;
-//use std::io::prelude::*;
-use std::io::{BufRead, BufReader};
-// use std::fs::File;
+use encoding::all::UTF_8;
+use encodingbufreader::BufReaderEncoding;
+use sunnycat::md5file;
+use std::process;
 #[macro_use]
 extern crate clap;
 extern crate libc;
@@ -16,17 +17,8 @@ fn gen_value<T>(_: &T) {
     Default::default()
 }
 
-//i32转[i8]
-// fn i32Toi8(v: i32) -> [i8; 4] {
-//     unsafe {
-//         let i32Ptr: *const i32 = &v as *const i32;
-//         let i8Ptr: *const i8 = i32Ptr as *const i8;
-//         return [*i8Ptr.offset(0), *i8Ptr.offset(1), *i8Ptr.offset(2), *i8Ptr.offset(3)];
-//     }
-// }
-
 /// 查询的关键词高亮显示
-fn find_and_print(s: &str,key:&str) {
+fn find_and_print(s: &str, key: &str) {
     use crossterm::style::Stylize;
     let mut current_index = 0;
 
@@ -40,33 +32,11 @@ fn find_and_print(s: &str,key:&str) {
         current_index += next_index + key.len();
     }
 
-
     if current_index < s.len() {
         println!("{}", &s[current_index..]);
     }
 }
 
-#[allow(dead_code)]
-/// 查询的关键词高亮显示
-fn color_log(s: String, kyw: String) -> () {
-    let line = s;
-    use ansi_term::Colour::{Blue, Yellow};
-    use ansi_term::Style;
-    let l = kyw.len();
-    match line.find(&kyw) {
-        Some(start_bytes) => {
-            let result = &line[start_bytes..start_bytes + l];
-            print!("{}", &line[..start_bytes]);
-            print!("{}", Style::new().on(Blue).fg(Yellow).paint(result));
-            let subline = &line[start_bytes + l..];
-            println!("{subline}")
-            // color_log(subline.to_string(), kyw.to_string(), lineonly);
-        }
-        None => {
-            println!("");
-        }
-    }
-}
 fn read_file(
     filename: String,
     kyw: String,
@@ -74,18 +44,14 @@ fn read_file(
     end: i32,
     lineonly: bool,
 ) -> std::io::Result<()> {
-    //let file = File::open(filename).unwrap();
-    //let f = BufReader::new(file);
 
-    use encoding::all::UTF_8;
-    use encodingbufreader::BufReaderEncoding;
     let file = File::open(filename)?;
     let mut i = 1;
     // println!("开始:{}\t;结束:{}\n",begin,end);
     for line in BufReaderEncoding::new(file, UTF_8).lines() {
         if (begin == 0 && end == 0) || (i >= begin && i <= end) {
-            if lineonly{
-                let str_line=line.unwrap();
+            if lineonly {
+                let str_line = line.unwrap();
                 match str_line.find(&kyw) {
                     Some(_) => {
                         let s = format!("{:08}", i);
@@ -101,7 +67,7 @@ fn read_file(
                         println!("");
                     }
                 }
-            }else{
+            } else {
                 let s = format!("{:08}", i);
                 print!("{}  ", Colour::Yellow.paint(s));
                 if kyw.len() == 0 {
@@ -111,46 +77,11 @@ fn read_file(
                     find_and_print(&line.unwrap(), &kyw);
                 }
             }
-            
         }
         i = i + 1;
         if i > end && end != 0 {
             break;
         }
-    }
-    Ok(())
-}
-
-#[allow(dead_code)]
-// Returns the path to the user's template directory.
-//这个方法只能用于string类型，容易出现【stream did not contain valid UTF-8】
-//works, but it keeps allocation a string for each line. Besides, if there is no line break on the input file, the whole file would be load to the memory.
-fn read_file_old(filename: String, kyw: String, begin: i32, end: i32) -> std::io::Result<()> {
-    let file = File::open(filename).unwrap();
-    let fin = BufReader::new(file);
-    let mut i = 1;
-    for line in fin.lines() {
-        if begin == 0 && end == 0 {
-            let s = format!("{:07}", i);
-            print!("{}  \t", Colour::Yellow.paint(s));
-            if kyw.len() == 0 {
-                gen_value(&line);
-                println!(" {}", line.unwrap().to_string());
-            } else {
-                color_log(line.unwrap().to_string(), kyw.to_string());
-            }
-        } else {
-            if i >= begin && i <= end {
-                let s = format!("{:07}", i);
-                print!("{}  \t", Colour::Yellow.paint(s));
-                if kyw.len() == 0 {
-                    println!(" {}", line.unwrap().to_string());
-                } else {
-                    color_log(line.unwrap().to_string(), kyw.to_string());
-                }
-            }
-        }
-        i = i + 1;
     }
     Ok(())
 }
@@ -180,6 +111,12 @@ fn flag() -> () {
                 .help("Get detail program's info"),
         )
         .arg(
+            Arg::with_name("md5")
+                .short("m")
+                .long("md5")
+                .help("Get the value of md5."),
+        )
+        .arg(
             Arg::with_name("lineonly")
                 .short("l")
                 .long("lineonly")
@@ -191,12 +128,6 @@ fn flag() -> () {
         .args_from_usage("-b, --bytekeyword=[BYTEKEYWORD] '搜索byte关键字'")
         .args_from_usage("-s,--str=[STRING]'转成中文'")
         .args_from_usage("-f ,--file=[FILE] 'Sets the input file to use'")
-        // .subcommand(
-        //     App::new("lineonly")
-        //         .about("只显示有关键字存在的行号")
-        //         .version(crate_version!())
-        //         .args_from_usage("-l, --list '只显示能够查找到关键字的行号。'"),
-        // )
         .subcommand(
             SubCommand::with_name("lines")
                 .about("选择哪些行显示")
@@ -219,7 +150,6 @@ fn flag() -> () {
             print!("\\\\{:o}", i);
         }
         println!("------{}", bytekey);
-        use std::process;
         process::exit(0x0100);
     }
     /*
@@ -231,25 +161,28 @@ fn flag() -> () {
         let mut vec = Vec::new();
         for value in tokens.iter() {
             if value.len() > 0 {
-                //let ss=value.parse::<i32>().unwrap();
                 let ss = u8::from_str_radix(value, 8).unwrap();
                 vec.push(ss);
             }
         }
         let sparkle_heart = String::from_utf8(vec).unwrap();
         println!("vec :{:?}", sparkle_heart);
-        use std::process;
         process::exit(0x0100);
     }
 
     let detail = matches.is_present("detail");
     if detail {
         get_shadow();
-        use std::process;
+        
         process::exit(0x0100);
     }
 
-    //  println!("{}",bLine);
+    let md5=matches.is_present("md5");
+    if md5{
+        let md5sum=md5file::calculate_file_md5(filename).unwrap();
+        println!("md5:{}",md5sum);
+        process::exit(0x0100);
+    }
     let mut lines: String = "0,0".to_string();
     if let Some(matches) = matches.subcommand_matches("lines") {
         if matches.is_present("rows") {
@@ -259,17 +192,8 @@ fn flag() -> () {
         }
     }
     let lineonly = matches.is_present("lineonly");
-    
-    // let mut lineonly: bool = false;
-    // if let Some(matches) = matches.subcommand_matches("lineonly") {
-    //     if matches.is_present("list") {
-    //         lineonly = true;
-    //         //     gen_value(&lineonly);
-    //         //    print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
-    //         //    use std::process;
-    //         //    process::exit(0x0100);
-    //     }
-    // }
+    // print!(" _|￣|○ -----🎉🎉🎉👍💁👌 RUST{}  ⚽🎍😍🎉🎉🎉------○|￣|_  \n",lineonly);
+
     let l: Vec<&str> = lines.split(",").collect();
     let begin: i32 = l[0].parse().unwrap();
     let end: i32 = l[1].parse().unwrap();
@@ -282,10 +206,6 @@ fn flag() -> () {
         }
     };
 }
-
-// pub mod shadow {
-//     include!(concat!(env!("OUT_DIR"), "/shadow.rs"));
-// }
 
 pub fn get_shadow() {
     shadow!(build);

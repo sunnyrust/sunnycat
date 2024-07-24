@@ -1,6 +1,6 @@
 [package]
 name = "sunnycat"
-version = "0.3.3"
+version = "0.3.6"
 authors = ["Sunny <jinheking@gmail.com>"]
 edition = "2021"
 gitversion = "51a2db2715ea844d3b4765aaef9343bd2cd4b824"
@@ -26,5 +26,8 @@ encodingbufreader = "0.1.1"
 shadow-rs = "0.29.0"
 colored = "2.1.0"
 crossterm = "0.27.0"
+digest = "0.10.7"
+md-5 = "0.10.6"
+hex = "0.4.3"
 [build-dependencies]
 shadow-rs = "0.29.0"
